@@ -97,7 +97,7 @@ def convert_song(source: Path, output: Path, mapping_kind="auto", provenance=Non
     ini.read(source / "song.ini", encoding="utf-8-sig")
     meta = dict(ini["song"]) if ini.has_section("song") else {}
     title, artist = clean(meta.get("name", source.name)), clean(meta.get("artist", "Unknown Artist"))
-    target = output / folder_name(f"{artist} - {title}")
+    target = output / folder_name(title)
     if target.exists():
         raise FileExistsError(f"Output already exists: {target}. Choose another --output folder.")
     midi_paths = [p for p in source.iterdir() if p.suffix.lower() in {".mid", ".midi"}]

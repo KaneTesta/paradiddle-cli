@@ -35,6 +35,27 @@ def fixture(root, delay=0, drums=True):
 
 
 class ConversionTests(unittest.TestCase):
+    def test_paradb_folder_chart_names_and_drum_audio(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root / "input")
+            path = root / "input/notes.mid"
+            mid = mido.MidiFile(path)
+            for note in (60, 72, 84):
+                mid.tracks[1].append(mido.Message("note_on", note=note, velocity=100, time=120))
+            mid.save(path)
+            (root / "input/drums.wav").write_bytes((root / "input/song.wav").read_bytes())
+            result = convert_song(root / "input", root / "out")
+            self.assertEqual(result.name, "Example")
+            self.assertEqual(
+                sorted(p.name for p in result.glob("*.rlrr")),
+                ["Example_Easy.rlrr", "Example_Expert.rlrr", "Example_Hard.rlrr", "Example_Medium.rlrr"])
+            self.assertTrue((result / "drums.ogg").is_file())
+            for chart in result.glob("*.rlrr"):
+                data = json.loads(chart.read_text())
+                self.assertEqual(data["audioFileData"]["drumTracks"], ["drums.ogg"])
+                self.assertEqual(data["recordingMetadata"]["artist"], "Artist")
+
     def test_nonstandard_chart_sysex_does_not_block_drums(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -53,7 +74,7 @@ class ConversionTests(unittest.TestCase):
             root = Path(tmp)
             fixture(root / "input", delay=125)
             out = convert_song(root / "input", root / "output")
-            self.assertEqual(out.name, "Artist - Example")
+            self.assertEqual(out.name, "Example")
             charts = list(out.glob("*.rlrr"))
             self.assertEqual(len(charts), 1)
             data = json.loads(charts[0].read_text())
@@ -126,4 +147,5 @@ class PackageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 

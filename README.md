@@ -10,7 +10,7 @@ Double-click `Start.cmd`.
 Enter the **song name**, then the **artist**. When several charts match, choose
 the number beside the version you want. A single matching chart is selected automatically.
 
-Finished songs appear under `ParadiddleCLI\output\Artist - Song`.
+Finished songs appear under `ParadiddleCLI\output\SongName`.
 Copy the **entire folder** into your Paradiddle `Songs` directory; audio is
 required alongside the `.rlrr` chart files. The converter preserves available
 difficulties and credits the original chart author.
@@ -28,7 +28,7 @@ The CLI reads this file from its own directory, regardless of where you launch i
 Windows `%USERPROFILE%` and `~` are supported. Quotes preserve paths with spaces
 or `#`. Use an absolute path; the destination must already exist.
 
-After conversion, the complete `Artist - Song` folder is copied there.
+After conversion, the complete `SongName` folder is copied there.
 The original remains in `output`. Existing songs are never overwritten.
 If copying fails, the CLI reports the saved output location so you can copy
 it manually. A missing `.env` or an empty setting disables automatic copying.

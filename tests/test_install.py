@@ -38,7 +38,7 @@ class InstallTests(unittest.TestCase):
     def test_existing_song_is_not_overwritten(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source = root / "output/Artist - Example"
+            source = root / "output/Example"
             source.mkdir(parents=True)
             (source / "song.ogg").write_bytes(b"new")
             destination = root / "Songs"
@@ -59,7 +59,7 @@ class InstallTests(unittest.TestCase):
             with patch("cli.ROOT", root), contextlib.redirect_stdout(io.StringIO()):
                 result = main(["--input", str(root / "input"), "--output", str(root / "out")])
             self.assertEqual(result, 0)
-            original = root / "out/Artist - Example"
+            original = root / "out/Example"
             copied = songs / original.name
             self.assertEqual(sorted(p.name for p in original.iterdir()),
                              sorted(p.name for p in copied.iterdir()))
@@ -76,3 +76,4 @@ class InstallTests(unittest.TestCase):
                 with self.assertRaises(OSError):
                     copy_song(source, destination)
             self.assertEqual(list(destination.iterdir()), [])
+
