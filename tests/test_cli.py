@@ -12,6 +12,44 @@ from test_core import fixture
 
 
 class CliTests(unittest.TestCase):
+    def test_multiple_selected_songs_are_converted_and_copied(self):
+        charts = [{"name": name, "artist": "Artist", "md5": digest * 32}
+                  for name, digest in [("Unselected", "a"), ("Second", "b"), ("Third", "c")]]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Songs").mkdir()
+            (root / ".env").write_text(f"PARADIDDLE_SONGS_DIR={root / 'Songs'}\n")
+            for title in ("Second", "Third"):
+                fixture(root / title)
+                ini = root / title / "song.ini"
+                ini.write_text(ini.read_text().replace("name=Example", f"name={title}"))
+            output = io.StringIO()
+            with patch("cli.ROOT", root), patch("cli.search", return_value=charts), \
+                    patch("cli.download", side_effect=[root / "Second", root / "Third"]), \
+                    contextlib.redirect_stdout(output):
+                status = main(["--artist", "Artist", "--choice", "2,3",
+                               "--output", str(root / "out")])
+            self.assertEqual(status, 0)
+            self.assertEqual(sorted(p.name for p in (root / "Songs").iterdir()), ["Second", "Third"])
+            self.assertEqual(sorted(p.name for p in (root / "out").iterdir()), ["Second", "Third"])
+            self.assertIn("2 completed, 0 skipped, 0 failed", output.getvalue())
+
+    def test_batch_continues_after_failure_and_skips_existing_output(self):
+        charts = [{"name": name, "artist": "Artist", "md5": digest * 32}
+                  for name, digest in [("Broken", "a"), ("Example", "b"), ("Example", "c")]]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root / "input")
+            output = io.StringIO()
+            with patch("cli.ROOT", root), patch("cli.search", return_value=charts), \
+                    patch("cli.download", side_effect=[OSError("offline"), root / "input"]) as download, \
+                    contextlib.redirect_stdout(output):
+                status = main(["--artist", "Artist", "--all", "--output", str(root / "out")])
+            self.assertEqual(status, 1)
+            self.assertEqual(download.call_count, 2)
+            self.assertTrue((root / "out/Example/Example_Expert.rlrr").exists())
+            self.assertIn("1 completed, 1 skipped, 1 failed", output.getvalue())
+
     def test_artist_selection_converts_selected_chart(self):
         charts = [{"name": name, "artist": "Artist", "md5": digest * 32}
                   for name, digest in [("First", "a"), ("Example", "b")]]

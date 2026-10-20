@@ -9,12 +9,15 @@ import zipfile
 from pathlib import Path
 from urllib.error import URLError
 
-from convert import clean, convert_song
+from convert import clean, convert_song, folder_name
 from install import configured_songs_dir, copy_song
 from packages import unpack_sng, unpack_zip
 from sources import download, search
+from selection import parse_selection
 
 ROOT = Path(__file__).resolve().parent
+CONVERSION_ERRORS = (OSError, ValueError, RuntimeError, URLError, configparser.Error,
+                     zipfile.BadZipFile, subprocess.TimeoutExpired)
 
 
 def song_folder(root):
@@ -33,7 +36,9 @@ def main(argv=None):
     parser.add_argument("--input", type=Path, help="Local Clone Hero folder, .sng, or .zip")
     parser.add_argument("--output", type=Path, default=ROOT / "output")
     parser.add_argument("--mapping", choices=["auto", "rockband", "guitarhero"], default="auto")
-    parser.add_argument("--choice", type=int, help="Select a numbered search result without prompting")
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--choice", help="Chart number(s), e.g. 1,3,5 or 2-6 or all")
+    selection.add_argument("--all", action="store_true", help="Process all listed charts; skip existing song folders")
     parser.add_argument("--list", action="store_true", help="List matches without downloading")
     args = parser.parse_args(argv)
     songs_dir = None if args.list else configured_songs_dir(ROOT)
@@ -67,24 +72,51 @@ def main(argv=None):
                   f" | Drums: {', '.join(levels) or 'verify after download'}")
         if args.list:
             return 0
-        choice = args.choice
+        choice = "all" if args.all else args.choice
         if choice is None and len(charts) == 1 and song is not None:
-            choice = 1
+            choice = "1"
         while choice is None:
-            value = input("Choose a chart number (q to cancel): ").strip()
+            value = input("Choose chart numbers (1,3,5 or 2-6), all, or q to cancel: ").strip()
             if value.lower() == "q":
                 return 2
-            if value.isdigit() and 1 <= int(value) <= len(charts):
-                choice = int(value)
-            else:
-                print("Enter one of the displayed chart numbers.")
-        if not 1 <= choice <= len(charts):
-            raise ValueError("--choice is outside the displayed result range")
-        chart = charts[choice - 1]
-        provenance = {"provider": "Enchor", "chart": f"https://www.enchor.us/chart/{chart['md5']}",
-                      "md5": chart["md5"], "charter": chart.get("charter")}
-        print("\nDownloading chart ...", flush=True)
-        source = download(chart, cache)
+            try:
+                parse_selection(value, len(charts))
+                choice = value
+            except ValueError as exc:
+                print(exc)
+        selected = parse_selection(choice, len(charts))
+        completed = skipped = failed = 0
+        for index, number in enumerate(selected, 1):
+            chart = charts[number - 1]
+            title = clean(chart.get("name") or "")
+            print(f"\n[{index}/{len(selected)}] {title}", flush=True)
+            target = args.output.resolve() / folder_name(title)
+            if target.exists():
+                print(f"Skipped: output already exists at {target}")
+                skipped += 1
+                continue
+            provenance = {"provider": "Enchor", "chart": f"https://www.enchor.us/chart/{chart['md5']}",
+                          "md5": chart["md5"], "charter": chart.get("charter")}
+            try:
+                print("Downloading chart ...", flush=True)
+                source = download(chart, cache)
+                status = convert_input(source, cache, args, songs_dir, provenance)
+                if status:
+                    failed += 1
+                else:
+                    completed += 1
+            except FileExistsError as exc:
+                print(f"Skipped: {exc}")
+                skipped += 1
+            except CONVERSION_ERRORS as exc:
+                print(f"Failed: {title}: {exc}")
+                failed += 1
+        print(f"\nSummary: {completed} completed, {skipped} skipped, {failed} failed.")
+        return 1 if failed else 0
+    return convert_input(source, cache, args, songs_dir, provenance)
+
+
+def convert_input(source, cache, args, songs_dir, provenance):
     source = source.resolve()
     if not source.exists():
         raise ValueError(f"Input does not exist: {source}")
@@ -127,7 +159,6 @@ if __name__ == "__main__":
     except (KeyboardInterrupt, EOFError):
         print("\nCancelled.", file=sys.stderr)
         raise SystemExit(130)
-    except (OSError, ValueError, RuntimeError, URLError, configparser.Error,
-            zipfile.BadZipFile, subprocess.TimeoutExpired) as exc:
+    except CONVERSION_ERRORS as exc:
         print(f"\nCould not create song: {exc}", file=sys.stderr)
         raise SystemExit(1)

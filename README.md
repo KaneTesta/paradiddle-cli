@@ -10,8 +10,16 @@ Double-click `Start.cmd`.
 Enter the **song name**, then the **artist**. When several charts match, choose
 the number beside the version you want. A single matching chart is selected automatically.
 To browse an artist's songs, leave the song name blank and enter the artist.
-Choose a numbered song/chart from the alphabetically sorted list. Multiple
+Choose numbered songs/charts from the alphabetically sorted list. Enter `1,3,5`,
+a range such as `2-6`, a combination such as `1,3-5`, or `all`. Enter `q` to cancel. Multiple
 versions of a song are shown separately with their charter and drum difficulties.
+
+Selections are processed sequentially, with a completed/skipped/failed summary.
+`all` attempts every displayed chart. Once a song's output folder exists,
+later versions with that folder name are skipped; choose specific chart numbers
+if you prefer a particular charter. Existing output is never overwritten.
+Failures do not stop the rest of the batch. Auto-copy applies to each completed
+song; copy failures preserve the output and count as failed in the summary.
 
 Finished songs appear under `ParadiddleCLI\output\SongName`.
 Copy the **entire folder** into your Paradiddle `Songs` directory; audio is
@@ -50,6 +58,8 @@ Run these from PowerShell inside the CLI folder:
 .\Start.cmd --song "BIRDS" --artist "Turnstile"
 .\Start.cmd --artist "Turnstile"
 .\Start.cmd --artist "Turnstile" --list
+.\Start.cmd --artist "Turnstile" --choice "1,3,5-8"
+.\Start.cmd --artist "Turnstile" --all
 .\Start.cmd --song "HOLIDAY" --artist "Turnstile" --list
 .\Start.cmd --song "HOLIDAY" --artist "Turnstile" --choice 1
 .\Start.cmd --input "C:\Path\To\SongFolder"
@@ -104,7 +114,7 @@ an optional portable Python installation under `runtime`; this is not committed.
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
-.\.venv\Scripts\python.exe -m compileall -q cli.py convert.py packages.py sources.py install.py
+.\.venv\Scripts\python.exe -m compileall -q cli.py convert.py packages.py sources.py install.py selection.py
 ```
 
 For a fresh development environment, use Python 3.12 and
