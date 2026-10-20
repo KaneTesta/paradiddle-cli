@@ -153,12 +153,33 @@ def convert_input(source, cache, args, songs_dir, provenance):
     return 0
 
 
+def run_session(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    interactive = sys.stdin.isatty() and not any(
+        flag in argv for flag in ("--list", "--help", "-h"))
+    while True:
+        try:
+            status = main(argv)
+        except (KeyboardInterrupt, EOFError):
+            print("\nCancelled.", file=sys.stderr)
+            return 130
+        except CONVERSION_ERRORS as exc:
+            print(f"\nCould not create song: {exc}", file=sys.stderr)
+            status = 1
+        if not interactive:
+            return status
+        while True:
+            try:
+                action = input("\nPress Enter to start a new search, or Q to quit: ").strip().lower()
+            except (KeyboardInterrupt, EOFError):
+                return status
+            if action == "q":
+                return status
+            if action == "":
+                argv = []
+                break
+            print("Press Enter to start over, or type Q to quit.")
+
+
 if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    except (KeyboardInterrupt, EOFError):
-        print("\nCancelled.", file=sys.stderr)
-        raise SystemExit(130)
-    except CONVERSION_ERRORS as exc:
-        print(f"\nCould not create song: {exc}", file=sys.stderr)
-        raise SystemExit(1)
+    raise SystemExit(run_session())

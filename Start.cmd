@@ -8,5 +8,4 @@ if not exist "%python%" (
 )
 "%python%" "%~dp0cli.py" %*
 set "result=%errorlevel%"
-if "%~1"=="" pause
 exit /b %result%

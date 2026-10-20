@@ -14,6 +14,11 @@ Choose numbered songs/charts from the alphabetically sorted list. Enter `1,3,5`,
 a range such as `2-6`, a combination such as `1,3-5`, or `all`. Enter `q` to cancel. Multiple
 versions of a song are shown separately with their charter and drum difficulties.
 
+After an interactive run, press **Enter** to start a fresh search or **Q** to
+quit. The new search clears the previous artist, song, and selection arguments.
+For batches, this prompt appears after the whole selection finishes.
+`--list`, `--help`, and piped/non-interactive runs exit without a restart prompt.
+
 Selections are processed sequentially, with a completed/skipped/failed summary.
 `all` attempts every displayed chart. Once a song's output folder exists,
 later versions with that folder name are skipped; choose specific chart numbers
