@@ -50,11 +50,6 @@ If copying fails, the CLI reports the saved output location so you can copy
 it manually. A missing `.env` or an empty setting disables automatic copying.
 Your `.env` is ignored by Git; only the blank `.env.example` is committed.
 
-Tested with a separately downloaded **Turnstile - BIRDS** chart containing
-Medium, Hard, and Expert difficulties. No songs, audio, or downloaded charts
-are included in this repository. Files and timing were validated, but playback
-in Paradiddle itself has not been tested.
-
 ## Commands
 
 Run these from PowerShell inside the CLI folder:
