@@ -13,7 +13,26 @@ the number beside the version you want. A single matching chart is selected auto
 Finished songs appear under `ParadiddleCLI\output\Artist - Song`.
 Copy the **entire folder** into your Paradiddle `Songs` directory; audio is
 required alongside the `.rlrr` chart files. The converter preserves available
-difficulties and credits the original chart author. It does not install songs into the game automatically.
+difficulties and credits the original chart author.
+
+## Automatic copying to Paradiddle
+
+Copy `.env.example` to `.env` beside `Start.cmd`, then set your existing
+Paradiddle **Songs** folder:
+
+```dotenv
+PARADIDDLE_SONGS_DIR="C:\Users\YourName\Documents\Paradiddle\Songs"
+```
+
+The CLI reads this file from its own directory, regardless of where you launch it.
+Windows `%USERPROFILE%` and `~` are supported. Quotes preserve paths with spaces
+or `#`. Use an absolute path; the destination must already exist.
+
+After conversion, the complete `Artist - Song` folder is copied there.
+The original remains in `output`. Existing songs are never overwritten.
+If copying fails, the CLI reports the saved output location so you can copy
+it manually. A missing `.env` or an empty setting disables automatic copying.
+Your `.env` is ignored by Git; only the blank `.env.example` is committed.
 
 Tested with a separately downloaded **Turnstile - BIRDS** chart containing
 Medium, Hard, and Expert difficulties. No songs, audio, or downloaded charts
@@ -80,7 +99,7 @@ an optional portable Python installation under `runtime`; this is not committed.
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
-.\.venv\Scripts\python.exe -m compileall -q cli.py convert.py packages.py sources.py
+.\.venv\Scripts\python.exe -m compileall -q cli.py convert.py packages.py sources.py install.py
 ```
 
 For a fresh development environment, use Python 3.12 and

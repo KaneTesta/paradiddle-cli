@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.error import URLError
 
 from convert import clean, convert_song
+from install import configured_songs_dir, copy_song
 from packages import unpack_sng, unpack_zip
 from sources import download, search
 
@@ -35,6 +36,7 @@ def main(argv=None):
     parser.add_argument("--choice", type=int, help="Select a numbered search result without prompting")
     parser.add_argument("--list", action="store_true", help="List matches without downloading")
     args = parser.parse_args(argv)
+    songs_dir = None if args.list else configured_songs_dir(ROOT)
     print("Paradiddle Song CLI\n", flush=True)
     cache = ROOT / "cache"
     cache.mkdir(exist_ok=True)
@@ -99,7 +101,17 @@ def main(argv=None):
         print(f"  {difficulty}: {count:,} drum hits")
     for warning in report["warnings"]:
         print(f"  Note: {warning}")
-    print("\nCopy this entire song folder into Paradiddle's Songs folder.")
+    if songs_dir:
+        try:
+            destination = copy_song(result, songs_dir)
+        except OSError as exc:
+            print(f"\nSong created at {result}, but auto-copy failed: {exc}", file=sys.stderr)
+            print("Your converted output is preserved. Copy it manually after resolving the issue.",
+                  file=sys.stderr)
+            return 1
+        print(f"\nCopied to Paradiddle: {destination}")
+    else:
+        print("\nCopy this entire song folder into Paradiddle's Songs folder.")
     return 0
 
 
