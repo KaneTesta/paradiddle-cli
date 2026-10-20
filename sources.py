@@ -1,4 +1,4 @@
-"""Public Enchor API; only public chart files are downloaded."""
+"""Search Chorus Encore and download SNG charts."""
 import json
 import re
 import time

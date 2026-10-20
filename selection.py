@@ -1,4 +1,4 @@
-"""Parse displayed chart numbers without executing user input."""
+"""Parse chart selections: numbers, ranges, or all."""
 import re
 
 

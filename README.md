@@ -1,138 +1,126 @@
 # Paradiddle Song CLI
 
-## Installation
+Search Chorus Encore for drum charts and convert them into Paradiddle songs.
+You can also convert local Clone Hero folders, SNG files, and ZIP files.
 
-Install Python 3.12 with the Windows Python launcher, clone this repository,
-and run `Setup.cmd` from the project folder. This creates a private `.venv`
-and installs the pinned dependencies, including FFmpeg.
+## Setup
 
-Double-click `Start.cmd`.
-Enter the **song name**, then the **artist**. When several charts match, choose
-the number beside the version you want. A single matching chart is selected automatically.
-To browse an artist's songs, leave the song name blank and enter the artist.
-Choose numbered songs/charts from the alphabetically sorted list. Enter `1,3,5`,
-a range such as `2-6`, a combination such as `1,3-5`, or `all`. Enter `q` to cancel. Multiple
-versions of a song are shown separately with their charter and drum difficulties.
+1. Install Python 3.12 with the Windows Python launcher.
+2. Clone this repository and run `Setup.cmd` to install dependencies.
+3. Double-click `Start.cmd`.
 
-After an interactive run, press **Enter** to start a fresh search or **Q** to
-quit. The new search clears the previous artist, song, and selection arguments.
-For batches, this prompt appears after the whole selection finishes.
-`--list`, `--help`, and piped/non-interactive runs exit without a restart prompt.
+Enter a song name and artist, or leave the song name blank to browse an artist's
+songs. Results show the chart author and available drum difficulties.
 
-Selections are processed sequentially, with a completed/skipped/failed summary.
-`all` attempts every displayed chart. Once a song's output folder exists,
-later versions with that folder name are skipped; choose specific chart numbers
-if you prefer a particular charter. Existing output is never overwritten.
-Failures do not stop the rest of the batch. Auto-copy applies to each completed
-song; copy failures preserve the output and count as failed in the summary.
+Select a chart by number, enter several numbers (`1,3,5`), use a range (`2-6`),
+or type `all`. You can combine numbers and ranges, such as `1,3-5`.
+Type `q` to cancel.
 
-Finished songs appear under `ParadiddleCLI\output\SongName`.
-Copy the **entire folder** into your Paradiddle `Songs` directory; audio is
-required alongside the `.rlrr` chart files. The converter preserves available
-difficulties and credits the original chart author.
+After the downloads finish, press **Enter** to search again or **Q** to quit.
 
-## Automatic copying to Paradiddle
+Songs are saved to `output\SongName` inside the CLI folder. Copy the whole song
+folder into Paradiddle's `Songs` folder, or set up automatic copying below.
+Each song includes its audio and the difficulties available in the source chart.
 
-Copy `.env.example` to `.env` beside `Start.cmd`, then set your existing
-Paradiddle **Songs** folder:
+Existing output folders are skipped. If several charts have the same song name,
+only the first successful conversion is saved. Choose a specific chart number
+if you want a particular version. Failed downloads or conversions won't stop
+the remaining songs.
+
+## Automatic copying
+
+Copy `.env.example` to `.env` beside `Start.cmd` and set your Paradiddle
+`Songs` folder:
 
 ```dotenv
 PARADIDDLE_SONGS_DIR="C:\Users\YourName\Documents\Paradiddle\Songs"
 ```
 
-The CLI reads this file from its own directory, regardless of where you launch it.
-Windows `%USERPROFILE%` and `~` are supported. Quotes preserve paths with spaces
-or `#`. Use an absolute path; the destination must already exist.
+Use an existing folder and keep the path in quotes. `%USERPROFILE%` and `~`
+are supported. Leave the setting blank to turn off automatic copying.
 
-After conversion, the complete `SongName` folder is copied there.
-The original remains in `output`. Existing songs are never overwritten.
-If copying fails, the CLI reports the saved output location so you can copy
-it manually. A missing `.env` or an empty setting disables automatic copying.
-Your `.env` is ignored by Git; only the blank `.env.example` is committed.
+Converted songs stay in `output` as well. Existing songs in the destination
+are never overwritten. If copying fails, the CLI shows where to find the
+converted folder so you can copy it yourself.
 
 ## Commands
 
 Run these from PowerShell inside the CLI folder:
 
 ```powershell
+# Find a song
 .\Start.cmd --song "BIRDS" --artist "Turnstile"
+
+# Browse an artist, select several charts, or download all matches
 .\Start.cmd --artist "Turnstile"
-.\Start.cmd --artist "Turnstile" --list
 .\Start.cmd --artist "Turnstile" --choice "1,3,5-8"
 .\Start.cmd --artist "Turnstile" --all
-.\Start.cmd --song "HOLIDAY" --artist "Turnstile" --list
-.\Start.cmd --song "HOLIDAY" --artist "Turnstile" --choice 1
+
+# List results without downloading
+.\Start.cmd --artist "Turnstile" --list
+
+# Convert a local folder or archive
 .\Start.cmd --input "C:\Path\To\SongFolder"
 .\Start.cmd --input "C:\Path\To\chart.sng"
 .\Start.cmd --input "C:\Path\To\chart.zip" --output "C:\Path\To\Converted"
+
 .\Start.cmd --help
 ```
 
-Existing output folders are never overwritten. To reconvert a song, select
-a different `--output` directory. Downloaded SNG files are cached under `cache`;
-temporary extraction folders are removed when conversion finishes.
+Use a different `--output` folder to reconvert a song. Downloads are cached in
+`cache`. The restart prompt is skipped for `--list`, `--help`, and piped input.
 
-## Supported inputs and limits
+## Supported charts
 
-- Automatic search/download: **Enchor** (public Clone Hero/YARG drum charts).
-  Title and artist matching ignores case, punctuation, spaces, and accents.
-  Use the full title; include version suffixes such as `(Live)` when applicable.
-- Local inputs: SNG, ZIP, or a single extracted song folder containing a MIDI
-  with exactly one `PART DRUMS` track and playable audio.
-- `.chart`-only files and raw Rock Band CON packages are not converted directly.
-  For Rock Band downloads from RhythmVerse, use the guide's C3 Tools/Nautilus
-  step to produce a Clone Hero folder, then pass that folder to `--input`.
-  RhythmVerse search/download is not automated in this release.
-- Audio is converted to stereo OGG/Vorbis with private FFmpeg.
-  Up to five song stems and four drum stems are supported.
-- Automatic mapping uses `five_lane_drums` metadata to select Guitar Hero;
-  otherwise the official Rock Band rhythm-game mapping is used.
-  Override with `--mapping guitarhero` or `--mapping rockband` when needed.
-- MIDI tempo changes and `song.ini` delay are applied. Negative delays that
-  place hits before the start of audio are rejected.
-- Charts can only be created when a suitable existing drum chart is available.
-  This tool does not transcribe drum parts from arbitrary audio.
-- Search is bounded to 5,000 results; downloads/extraction to 1 GiB.
-  Website changes or inaccessible files can require adapter updates.
+- Searches use **Chorus Encore**. Enter the full title, including suffixes such
+  as `(Live)`. Matching ignores case, punctuation, spaces, and accents.
+- Each song needs a MIDI file with one `PART DRUMS` track and playable audio.
+  `.chart`-only songs and raw Rock Band CON files need conversion first.
+- For Rock Band files, follow the [conversion guide](https://www.reddit.com/r/paradiddle/comments/1aebr9p/guide_how_to_convert_songs_for_paradiddle/)
+  to create a Clone Hero folder, then use `--input`. RhythmVerse downloads
+  must be obtained manually.
+- Audio is converted to stereo OGG/Vorbis. Paradiddle supports up to five
+  backing tracks and four drum tracks.
+- Drum mapping is selected from the chart's `five_lane_drums` setting.
+  Use `--mapping guitarhero` or `--mapping rockband` to override it.
+- MIDI tempo changes and the delay in `song.ini` are applied. Delays that put
+  drum hits before the audio starts are rejected.
+- Songs need an existing drum chart; the CLI cannot create one from audio alone.
+- Searches are limited to 5,000 results. Downloads and extracted files have a
+  1 GiB size limit.
 
 ## Troubleshooting
 
-- **No matching chart:** verify exact spelling and title suffixes, or obtain
-  a chart manually from https://rhythmverse.co/songfiles/game.
-- **No MIDI / PART DRUMS:** choose another chart or convert its source format first.
-- **Output already exists:** use another output directory.
-- **Audio conversion failed:** the file may be corrupt or unsupported; try another chart.
-- **Network error:** check connectivity and retry. Cached downloads are retained.
+- **No matching chart:** check the full song title and artist, or look on
+  [RhythmVerse](https://rhythmverse.co/songfiles/game).
+- **No MIDI / PART DRUMS:** choose another chart or convert the source format first.
+- **Output already exists:** choose another output folder with `--output`.
+- **Audio conversion failed:** try another chart; the audio may be corrupt or unsupported.
+- **Network error:** check your connection and retry.
 
-Each completed song includes `conversion-report.json` with its source, mapping,
-applied offset, event counts, and warnings.
+Each song's `conversion-report.json` records its source, drum mapping, timing
+offset, note counts, and any warnings. A copy failure is counted as failed in
+the batch summary, even though the converted song remains in `output`.
 
 ## Development
 
-Use Python 3.12 and run `Setup.cmd` before testing. The launcher also supports
-an optional portable Python installation under `runtime`; this is not committed.
+Run `Setup.cmd`, then:
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 .\.venv\Scripts\python.exe -m compileall -q cli.py convert.py packages.py sources.py install.py selection.py
 ```
 
-For a fresh development environment, use Python 3.12 and
-`python -m pip install -r requirements.txt`.
-Tests use temporary folders; restricted environments can set `TEMP` and `TMP`
-to a writable folder.
-
-To uninstall, first preserve any wanted songs from `output`, then remove the
-project folder.
+The launcher also accepts a portable Python installation in `runtime`.
+Tests use temporary folders; set `TEMP` and `TMP` if the default location
+isn't writable.
 
 ## Sources and licensing
 
-Project source is GPL-3.0; see `LICENSE` and `NOTICE.md`.
+Licensed under GPL-3.0. See `LICENSE` and `NOTICE.md` for details and third-party credits.
 
-- Conversion guide: https://www.reddit.com/r/paradiddle/comments/1aebr9p/guide_how_to_convert_songs_for_paradiddle/
-- Official mappings/layout and reference converter: https://github.com/emretanirgan/ParadiddleUtilities
-- Windows wrapper reference: https://github.com/rrtrytcg/paradiddleTools
-- SNG specification: https://github.com/mdsitton/SngFileFormat
-- Chart search: https://www.enchor.us/
-
-
+- [Conversion guide](https://www.reddit.com/r/paradiddle/comments/1aebr9p/guide_how_to_convert_songs_for_paradiddle/)
+- [ParadiddleUtilities mappings, drum layout, and reference converter](https://github.com/emretanirgan/ParadiddleUtilities)
+- [paradiddleTools Windows wrapper](https://github.com/rrtrytcg/paradiddleTools)
+- [SNG file format](https://github.com/mdsitton/SngFileFormat)
+- [Chorus Encore](https://www.enchor.us/)

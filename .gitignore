@@ -1,4 +1,4 @@
-# Private Python runtime and virtual environments
+# Python runtime and virtual environments
 /runtime/
 /.venv/
 /venv/
@@ -36,6 +36,3 @@ coverage.xml
 Thumbs.db
 Desktop.ini
 *.log
-
-# Keep source, tests, requirements.txt, and vendor/ committed.
-# vendor/ contains required Paradiddle mappings/layout and attribution.

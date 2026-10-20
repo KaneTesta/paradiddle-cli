@@ -144,7 +144,7 @@ def convert_input(source, cache, args, songs_dir, provenance):
             destination = copy_song(result, songs_dir)
         except OSError as exc:
             print(f"\nSong created at {result}, but auto-copy failed: {exc}", file=sys.stderr)
-            print("Your converted output is preserved. Copy it manually after resolving the issue.",
+            print("Copy the song folder to Paradiddle manually.",
                   file=sys.stderr)
             return 1
         print(f"\nCopied to Paradiddle: {destination}")
