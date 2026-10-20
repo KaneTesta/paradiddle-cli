@@ -9,6 +9,9 @@ and installs the pinned dependencies, including FFmpeg.
 Double-click `Start.cmd`.
 Enter the **song name**, then the **artist**. When several charts match, choose
 the number beside the version you want. A single matching chart is selected automatically.
+To browse an artist's songs, leave the song name blank and enter the artist.
+Choose a numbered song/chart from the alphabetically sorted list. Multiple
+versions of a song are shown separately with their charter and drum difficulties.
 
 Finished songs appear under `ParadiddleCLI\output\SongName`.
 Copy the **entire folder** into your Paradiddle `Songs` directory; audio is
@@ -45,6 +48,8 @@ Run these from PowerShell inside the CLI folder:
 
 ```powershell
 .\Start.cmd --song "BIRDS" --artist "Turnstile"
+.\Start.cmd --artist "Turnstile"
+.\Start.cmd --artist "Turnstile" --list
 .\Start.cmd --song "HOLIDAY" --artist "Turnstile" --list
 .\Start.cmd --song "HOLIDAY" --artist "Turnstile" --choice 1
 .\Start.cmd --input "C:\Path\To\SongFolder"

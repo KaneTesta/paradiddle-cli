@@ -9,6 +9,19 @@ from sources import filter_charts, search, download
 
 
 class SearchTests(unittest.TestCase):
+    @patch("sources.request_json")
+    def test_artist_search_returns_sorted_songs_and_filters_other_artists(self, request):
+        def chart(name, artist, digest, instrument="drums"):
+            return {"name": name, "artist": artist, "md5": digest * 32,
+                    "notesData": {"instruments": [instrument]}}
+        holiday = chart("HOLIDAY", "Turnstile", "a")
+        birds = chart("BIRDS", "Turnstile", "b")
+        request.return_value = {"found": 5, "data": [
+            holiday, birds, birds, chart("BIRDS", "Other", "c"),
+            chart("Guitar only", "Turnstile", "d", "guitar")]}
+        self.assertEqual(search(None, "Turnstile"), [birds, holiday])
+        self.assertEqual(request.call_args.args[1]["search"], "Turnstile")
+
     def test_rejects_wrong_artist_and_guitar_only_results(self):
         base = {"name": "BIRDS", "artist": "Turnstile", "md5": "a" * 32,
                 "notesData": {"instruments": ["drums"]}}

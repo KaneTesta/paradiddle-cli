@@ -37,7 +37,7 @@ def filter_charts(rows, song, artist):
     for row in rows:
         if normalized(row.get("artist") or "") != normalized(artist):
             continue
-        if normalized(row.get("name") or "") != normalized(song):
+        if song is not None and normalized(row.get("name") or "") != normalized(song):
             continue
         notes = row.get("notesData") or {}
         instruments = notes.get("instruments")
@@ -54,20 +54,24 @@ def filter_charts(rows, song, artist):
 
 
 def search(song, artist):
-    if not normalized(song) or not normalized(artist):
-        raise ValueError("Enter both a song name and an artist")
+    if not normalized(artist) or (song is not None and not normalized(song)):
+        raise ValueError("Enter an artist and, if specified, a valid song title")
     rows = []
-    # Search by title only: Enchor's free-text search can act like OR.
-    # Perform strict artist/title filtering locally.
+    # Use one search term; Enchor's free-text search can act like OR.
+    # Always filter artist locally, and title when supplied.
     for page in range(1, 21):
         data = request_json("https://api.enchor.us/search",
-                            {"search": song, "page": page, "per_page": 250})
+                            {"search": song if song is not None else artist, "page": page, "per_page": 250})
         if not isinstance(data.get("data"), list):
             raise ValueError("Enchor returned an unexpected search response")
         batch = data["data"]
         rows.extend(batch)
         if not batch or page * 250 >= int(data.get("found", 0)):
-            return filter_charts(rows, song, artist)
+            matches = filter_charts(rows, song, artist)
+            if song is None:
+                matches.sort(key=lambda row: (normalized(row.get("name") or ""),
+                                              normalized(row.get("charter") or ""), row["md5"]))
+            return matches
     raise ValueError("Search exceeds 5,000 results; use a more specific full song title")
 
 

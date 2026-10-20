@@ -29,7 +29,7 @@ def song_folder(root):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Find an existing drum chart and convert it to Paradiddle.")
     parser.add_argument("--song", help="Exact song title (case/punctuation insensitive)")
-    parser.add_argument("--artist", help="Artist name")
+    parser.add_argument("--artist", help="Artist name; omit --song to browse their drum charts")
     parser.add_argument("--input", type=Path, help="Local Clone Hero folder, .sng, or .zip")
     parser.add_argument("--output", type=Path, default=ROOT / "output")
     parser.add_argument("--mapping", choices=["auto", "rockband", "guitarhero"], default="auto")
@@ -43,9 +43,15 @@ def main(argv=None):
     provenance = None
     source = args.input
     if source is None:
-        song = (args.song or input("Song name: ")).strip()
+        if args.song is not None:
+            song = args.song.strip() or None
+        elif args.artist is not None:
+            song = None
+        else:
+            song = input("Song name (leave blank to browse by artist): ").strip() or None
         artist = (args.artist or input("Artist: ")).strip()
-        print(f"\nSearching for {clean(artist)} - {clean(song)} ...", flush=True)
+        description = f"{clean(artist)} - {clean(song)}" if song else f"drum charts by {clean(artist)}"
+        print(f"\nSearching for {description} ...", flush=True)
         charts = search(song, artist)
         if not charts:
             print("No matching downloadable drum chart found on Enchor.")
@@ -62,7 +68,7 @@ def main(argv=None):
         if args.list:
             return 0
         choice = args.choice
-        if choice is None and len(charts) == 1:
+        if choice is None and len(charts) == 1 and song is not None:
             choice = 1
         while choice is None:
             value = input("Choose a chart number (q to cancel): ").strip()
