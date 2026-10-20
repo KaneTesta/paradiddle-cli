@@ -1,0 +1,41 @@
+# Private Python runtime and virtual environments
+/runtime/
+/.venv/
+/venv/
+/env/
+
+# Downloaded charts, extraction scratch files, and generated songs
+/cache/
+/output/
+
+# Python bytecode and local test/tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Build and packaging output
+/build/
+/dist/
+*.egg-info/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Editor and operating-system files
+/.vscode/
+/.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+
+# Keep source, tests, requirements.txt, and vendor/ committed.
+# vendor/ contains required Paradiddle mappings/layout and attribution.
